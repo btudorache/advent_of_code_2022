@@ -20,47 +20,29 @@ def parse_list(list_string, start):
 
     return parsed_list, None
 
-def verify_mixed_lists(left, right):
-    i = 0
-    while i < len(left) and i < len(right):
-        if isinstance(left[i], int) and isinstance(right[i], list):
-            return verify_mixed_lists([left[i]], right[i])
-        elif isinstance(right[i], int) and isinstance(left[i], list):
-            return verify_mixed_lists(left[i], [right[i]])
-        elif left[i] < right[i]:
-            return True
-        elif left[i] > right[i]:
-            return False
-        i += 1
-
-    return True
 
 def verify_lists(left, right):
-    i = 0
-    while True:
-        if i >= len(left) and i < len(right):
-            return True
-        elif i >= len(right) and i < len(left):
-            return False
-        elif i >= len(right) and i >= len(left):
-            return True
-        elif isinstance(left[i], int) and isinstance(right[i], int) and left[i] > right[i]:
-            return False
-        elif isinstance(left[i], list) and isinstance(right[i], list):
-            is_correct_order = verify_lists(left[i], right[i])
-            if not is_correct_order:
+    check_len = min(len(left), len(right))
+    for i in range(check_len):
+        if isinstance(left[i], int) and isinstance(right[i], int):
+            if left[i] > right[i]:
                 return False
-        elif isinstance(left[i], list) or isinstance(right[i], list):
-            is_correct_order = None
-            if isinstance(left[i], int):
-                is_correct_order = verify_mixed_lists([left[i]], right[i])
-            elif isinstance(right[i], int):
-                is_correct_order = verify_mixed_lists(left[i], [right[i]])
+            elif left[i] < right[i]:
+                return True
+        else:
+            left_elem = [left[i]] if isinstance(left[i], int) else left[i]
+            right_elem = [right[i]] if isinstance(right[i], int) else right[i]
+            lists_valid = verify_lists(left_elem, right_elem)
+            if lists_valid != None:
+                return lists_valid
 
-            if is_correct_order != None and not is_correct_order:
-                return False
+    if len(right) < len(left):
+        return False
+    elif len(right) > len(left):
+        return True
 
-        i += 1
+    return None
+
 
 def day13_task1():
     with open("input.txt", "r") as f:
@@ -79,7 +61,19 @@ def day13_task1():
         print(index_sum)
 
 def day13_task2():
-    pass
+    lower_divider, higher_divider = [[2]], [[6]]
+    lower, between = 0, 0
+    with open("input.txt", "r") as f:
+        for line in f.readlines():
+            stripped = line.strip()
+            if stripped != '':
+                parsed = parse_list(stripped, 0)[0]
+                if verify_lists(parsed, lower_divider):
+                    lower += 1
+                elif verify_lists(parsed, higher_divider):
+                    between += 1
+        
+        print((lower + 1) * (lower + between + 2))
 
 
 if __name__ == '__main__':
